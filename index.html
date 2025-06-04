@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bulk UPC URL Generator + History</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+    }
+    textarea, select, button {
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #007C88;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #005f66;
+    }
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #007C88;
+      color: white;
+    }
+    td a {
+      color: #007C88;
+      text-decoration: none;
+    }
+    #historySection {
+      margin-top: 40px;
+    }
+    .history-entry {
+      background: #f0f0f0;
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Bulk UPC / Factory Number URL Generator</h1>
+
+    <label for="inputType">Select Input Type:</label>
+    <select id="inputType">
+      <option value="upc">UPC</option>
+      <option value="factoryNumber">Factory Number</option>
+    </select>
+
+    <label for="productList">Enter UPCs or Factory Numbers (one per line):</label>
+    <textarea id="productList" rows="10" placeholder="e.g.&#10;711753&#10;036000291452"></textarea>
+
+    <label>Select Stores:</label>
+    <label><input type="checkbox" class="storeCheckbox" value="homeDepot" checked> Home Depot</label><br>
+    <label><input type="checkbox" class="storeCheckbox" value="menards"> Menards</label><br>
+
+    <button onclick="generateURLs()">Generate URLs</button>
+    <button onclick="clearHistory()" style="background:#b30000; margin-top:10px;">Clear History</button>
+
+    <div id="resultsContainer"></div>
+
+    <div id="historySection">
+      <h2>History</h2>
+      <div id="historyContent"></div>
+    </div>
+  </div>
+
+  <script>
+    function generateURLs() {
+      const inputType = document.getElementById("inputType").value;
+      const productList = document.getElementById("productList").value.trim().split(/\r?\n/).filter(Boolean);
+      const storeCheckboxes = document.querySelectorAll(".storeCheckbox:checked");
+      const selectedStores = Array.from(storeCheckboxes).map(cb => cb.value);
+
+      if (productList.length === 0) {
+        alert("Please enter at least one UPC or Factory Number.");
+        return;
+      }
+      if (selectedStores.length === 0) {
+        alert("Please select at least one store.");
+        return;
+      }
+
+      let resultHTML = `<table><thead><tr><th>Input</th>`;
+      selectedStores.forEach(store => {
+        resultHTML += `<th>${store.charAt(0).toUpperCase() + store.slice(1)}</th>`;
+      });
+      resultHTML += `</tr></thead><tbody>`;
+
+      const timestamp = new Date().toLocaleString();
+      const historyEntry = {
+        timestamp,
+        inputType,
+        productList,
+        selectedStores,
+        results: []
+      };
+
+      productList.forEach(input => {
+        const row = { input, urls: {} };
+        resultHTML += `<tr><td>${input}</td>`;
+        selectedStores.forEach(store => {
+          let url = "";
+          if (store === "homeDepot") {
+            url = `https://www.homedepot.com/s/${input}`;
+          } else if (store === "menards") {
+            if (inputType === "upc") {
+              url = `⚠️ Factory Number required`;
+            } else {
+              url = `https://www.menards.com/main/search.html?search=${input}`;
+            }
+          }
+
+          row.urls[store] = url;
+          resultHTML += `<td>${
+            url.startsWith("http") ? `<a href="${url}" target="_blank">Link</a>` : url
+          }</td>`;
+        });
+        resultHTML += `</tr>`;
+        historyEntry.results.push(row);
+      });
+
+      resultHTML += `</tbody></table>`;
+      document.getElementById("resultsContainer").innerHTML = resultHTML;
+
+      saveToHistory(historyEntry);
+    }
+
+    function saveToHistory(entry) {
+      let history = JSON.parse(localStorage.getItem("urlGenHistory") || "[]");
+      history.unshift(entry); // newest first
+      localStorage.setItem("urlGenHistory", JSON.stringify(history));
+      displayHistory();
+    }
+
+    function displayHistory() {
+      const container = document.getElementById("historyContent");
+      const history = JSON.parse(localStorage.getItem("urlGenHistory") || "[]");
+
+      if (history.length === 0) {
+        container.innerHTML = "<p>No history yet.</p>";
+        return;
+      }
+
+      container.innerHTML = "";
+      history.forEach((entry, i) => {
+        let html = `<div class="history-entry"><strong>${entry.timestamp}</strong><br><ul>`;
+        entry.results.forEach(item => {
+          html += `<li>${item.input}: `;
+          entry.selectedStores.forEach(store => {
+            const url = item.urls[store];
+            html += url.startsWith("http")
+              ? `<a href="${url}" target="_blank">${store}</a> `
+              : `${store}: ${url} `;
+          });
+          html += `</li>`;
+        });
+        html += `</ul></div>`;
+        container.innerHTML += html;
+      });
+    }
+
+    function clearHistory() {
+      if (confirm("Are you sure you want to clear all history?")) {
+        localStorage.removeItem("urlGenHistory");
+        displayHistory();
+      }
+    }
+
+    // On page load
+    displayHistory();
+  </script>
+</body>
+</html>
