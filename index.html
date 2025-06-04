@@ -3,173 +3,208 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>UPC/Factory URL Generator - US Stores</title>
+  <title>Bulk UPC URL Generator + History</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 0;
-      padding: 0;
       background-color: #f5f5f5;
+      display: flex;
     }
+
+    .info-panel {
+      width: 250px;
+      background-color: #00274D; /* dark navy */
+      color: white;
+      padding: 20px;
+      box-shadow: 2px 0 6px rgba(0,0,0,0.1);
+      height: 100vh;
+      box-sizing: border-box;
+      position: fixed;
+      left: 0;
+      top: 0;
+    }
+
+    .info-panel h2 {
+      font-size: 20px;
+      margin-bottom: 15px;
+    }
+
+    .info-panel ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .info-panel li {
+      margin-bottom: 10px;
+    }
+
+    .main-content {
+      margin-left: 250px;
+      width: calc(100% - 250px);
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
     .container {
-      max-width: 1200px;
-      margin: auto;
-      padding: 40px 20px;
-      background: #fff;
-      min-height: 100vh;
+      max-width: 100%;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
+
     h1 {
       text-align: center;
-      margin-bottom: 30px;
+      color: #B22234; /* patriotic red */
     }
-    label {
-      font-weight: bold;
-      display: block;
-      margin-top: 15px;
-    }
-    textarea, select, input[type="file"] {
+
+    textarea, select, button {
       width: 100%;
+      margin: 10px 0;
       padding: 10px;
       font-size: 16px;
-      margin-top: 5px;
-      margin-bottom: 20px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
     }
+
     button {
-      background-color: #007C88;
+      background-color: #B22234; /* red */
       color: white;
       border: none;
-      padding: 10px 20px;
-      font-size: 16px;
-      border-radius: 6px;
       cursor: pointer;
-      margin-right: 10px;
-      margin-top: 10px;
+      border-radius: 4px;
     }
+
     button:hover {
-      background-color: #005f66;
+      background-color: #8b1a27;
     }
-    .danger {
-      background-color: #b30000;
-    }
+
     table {
       width: 100%;
-      margin-top: 30px;
+      margin-top: 20px;
       border-collapse: collapse;
     }
+
     th, td {
       border: 1px solid #ccc;
       padding: 10px;
       text-align: center;
     }
+
     th {
-      background-color: #007C88;
+      background-color: #00274D;
       color: white;
     }
+
     td a {
       color: #007C88;
       text-decoration: none;
     }
+
     #historySection {
       margin-top: 40px;
     }
+
     .history-entry {
       background: #f0f0f0;
       margin-bottom: 10px;
       padding: 10px;
       border-radius: 5px;
     }
-    .drag-area {
-      border: 2px dashed #007C88;
+
+    .drop-zone {
+      border: 2px dashed #B22234;
       padding: 20px;
       text-align: center;
-      border-radius: 8px;
-      color: #555;
-      margin-bottom: 20px;
+      margin: 10px 0;
+      border-radius: 6px;
+      background: #fff0f0;
+      color: #B22234;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Bulk UPC / Factory Number URL Generator</h1>
 
-    <label for="inputType">Select Input Type:</label>
-    <select id="inputType">
-      <option value="upc">UPC</option>
-      <option value="factoryNumber">Factory Number</option>
-    </select>
+  <div class="info-panel">
+    <h2>Info Panel 🇺🇸</h2>
+    <ul>
+      <li>✅ Paste or upload UPCs</li>
+      <li>✅ Export 85,000+ URLs</li>
+      <li>✅ Copy to clipboard</li>
+      <li>✅ No Home Hardware</li>
+    </ul>
+    <p>💡 Tip: You can drop a <code>.csv</code> file with UPCs directly into the browser window!</p>
+  </div>
 
-    <label for="fileUpload">Drag and drop CSV/Excel file or paste data below:</label>
-    <div class="drag-area" id="dragArea">Drop your file here or click to upload.</div>
-    <input type="file" id="fileUpload" accept=".csv, .xlsx, .xls" hidden>
+  <div class="main-content">
+    <div class="container">
+      <h1>Bulk UPC / Factory Number URL Generator</h1>
 
-    <textarea id="productList" rows="10" placeholder="e.g.&#10;711753&#10;036000291452"></textarea>
+      <label for="inputType">Select Input Type:</label>
+      <select id="inputType">
+        <option value="upc">UPC</option>
+        <option value="factoryNumber">Factory Number</option>
+      </select>
 
-    <label>Select Stores:</label>
-    <label><input type="checkbox" class="storeCheckbox" value="homeDepot" checked> Home Depot</label><br>
-    <label><input type="checkbox" class="storeCheckbox" value="menards"> Menards</label><br>
+      <label for="productList">Enter UPCs or Factory Numbers (one per line):</label>
+      <textarea id="productList" rows="10" placeholder="e.g.&#10;711753&#10;036000291452"></textarea>
 
-    <button onclick="generateURLs()">Generate URLs</button>
-    <button class="danger" onclick="clearHistory()">Clear History</button>
-    <button onclick="copyURLsToClipboard()">Copy All URLs</button>
-    <button onclick="exportCSV()">Export as CSV</button>
+      <div class="drop-zone" ondrop="handleDrop(event)" ondragover="event.preventDefault()">📂 Drop a .csv file here</div>
 
-    <div id="resultsContainer"></div>
+      <label>Select Stores:</label>
+      <label><input type="checkbox" class="storeCheckbox" value="homeDepot" checked> Home Depot</label><br>
+      <label><input type="checkbox" class="storeCheckbox" value="menards"> Menards</label><br>
 
-    <div id="historySection">
-      <h2>History</h2>
-      <div id="historyContent"></div>
+      <button onclick="generateURLs()">Generate URLs</button>
+      <button onclick="copyURLsToClipboard()">Copy All URLs</button>
+      <button onclick="exportCSV()">Export as CSV</button>
+      <button onclick="clearHistory()" style="background:#8b1a27; margin-top:10px;">Clear History</button>
+
+      <div id="resultsContainer"></div>
+
+      <div id="historySection">
+        <h2 style="color:#00274D;">History</h2>
+        <div id="historyContent"></div>
+      </div>
     </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <script>
-    const dragArea = document.getElementById("dragArea");
-    const fileInput = document.getElementById("fileUpload");
-
-    dragArea.addEventListener("click", () => fileInput.click());
-
-    dragArea.addEventListener("dragover", e => {
-      e.preventDefault();
-      dragArea.style.backgroundColor = "#e0f7fa";
-    });
-
-    dragArea.addEventListener("dragleave", () => {
-      dragArea.style.backgroundColor = "";
-    });
-
-    dragArea.addEventListener("drop", e => {
-      e.preventDefault();
-      dragArea.style.backgroundColor = "";
-      handleFileUpload(e.dataTransfer.files[0]);
-    });
-
-    fileInput.addEventListener("change", () => {
-      handleFileUpload(fileInput.files[0]);
-    });
-
-    function handleFileUpload(file) {
-      if (!file) return;
-      Papa.parse(file, {
-        complete: function(results) {
-          const values = results.data.flat().filter(Boolean);
-          document.getElementById("productList").value = values.join("\n");
-        }
-      });
+    function handleDrop(event) {
+      event.preventDefault();
+      const file = event.dataTransfer.files[0];
+      if (!file.name.endsWith(".csv")) {
+        alert("Please drop a .csv file.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const text = e.target.result;
+        document.getElementById("productList").value = text.trim();
+      };
+      reader.readAsText(file);
     }
 
     function generateURLs() {
       const inputType = document.getElementById("inputType").value;
       const productList = document.getElementById("productList").value.trim().split(/\r?\n/).filter(Boolean);
-      const selectedStores = Array.from(document.querySelectorAll(".storeCheckbox:checked")).map(cb => cb.value);
+      const storeCheckboxes = document.querySelectorAll(".storeCheckbox:checked");
+      const selectedStores = Array.from(storeCheckboxes).map(cb => cb.value);
 
-      if (productList.length === 0) return alert("Please enter at least one UPC or Factory Number.");
-      if (selectedStores.length === 0) return alert("Please select at least one store.");
+      if (productList.length === 0) {
+        alert("Please enter at least one UPC or Factory Number.");
+        return;
+      }
+      if (selectedStores.length === 0) {
+        alert("Please select at least one store.");
+        return;
+      }
 
-      let html = `<table><thead><tr><th>Input</th>`;
-      selectedStores.forEach(store => html += `<th>${store.charAt(0).toUpperCase() + store.slice(1)}</th>`);
-      html += `</tr></thead><tbody>`;
+      let resultHTML = `<table><thead><tr><th>Input</th>`;
+      selectedStores.forEach(store => {
+        resultHTML += `<th>${store.charAt(0).toUpperCase() + store.slice(1)}</th>`;
+      });
+      resultHTML += `</tr></thead><tbody>`;
 
       const timestamp = new Date().toLocaleString();
       const historyEntry = {
@@ -182,33 +217,32 @@
       };
 
       productList.forEach(input => {
-        let rowHTML = `<tr><td>${input}</td>`;
-        let row = { input, urls: {} };
-
+        const row = { input, urls: {} };
+        resultHTML += `<tr><td>${input}</td>`;
         selectedStores.forEach(store => {
           let url = "";
           if (store === "homeDepot") {
             url = `https://www.homedepot.com/s/${input}`;
           } else if (store === "menards") {
-            url = inputType === "upc" ? `⚠️ Requires Factory Number` : `https://www.menards.com/main/search.html?search=${input}`;
+            url = inputType === "factoryNumber"
+              ? `https://www.menards.com/main/search.html?search=${input}`
+              : `⚠️ Factory Number required`;
           }
 
           row.urls[store] = url;
           if (url.startsWith("http")) {
-            rowHTML += `<td><a href="${url}" target="_blank">Link</a></td>`;
+            resultHTML += `<td><a href="${url}" target="_blank">Link</a></td>`;
             historyEntry.allUrls.push(url);
           } else {
-            rowHTML += `<td>${url}</td>`;
+            resultHTML += `<td>${url}</td>`;
           }
         });
-
-        rowHTML += `</tr>`;
-        html += rowHTML;
+        resultHTML += `</tr>`;
         historyEntry.results.push(row);
       });
 
-      html += `</tbody></table>`;
-      document.getElementById("resultsContainer").innerHTML = html;
+      resultHTML += `</tbody></table>`;
+      document.getElementById("resultsContainer").innerHTML = resultHTML;
       saveToHistory(historyEntry);
     }
 
@@ -220,21 +254,57 @@
     }
 
     function displayHistory() {
-      const history = JSON.parse(localStorage.getItem("urlGenHistory") || "[]");
       const container = document.getElementById("historyContent");
-      if (history.length === 0) return container.innerHTML = "<p>No history yet.</p>";
+      const history = JSON.parse(localStorage.getItem("urlGenHistory") || "[]");
+      if (history.length === 0) {
+        container.innerHTML = "<p>No history yet.</p>";
+        return;
+      }
 
-      container.innerHTML = history.map(entry => `
-        <div class="history-entry"><strong>${entry.timestamp}</strong><br>
-          <ul>
-            ${entry.results.map(item => `
-              <li>${item.input}: ${entry.selectedStores.map(store => {
-                const url = item.urls[store];
-                return url.startsWith("http") ? `<a href="${url}" target="_blank">${store}</a>` : `${store}: ${url}`;
-              }).join(" | ")}</li>`).join("")}
-          </ul>
-        </div>
-      `).join("");
+      container.innerHTML = "";
+      history.forEach(entry => {
+        let html = `<div class="history-entry"><strong>${entry.timestamp}</strong><br><ul>`;
+        entry.results.forEach(item => {
+          html += `<li>${item.input}: `;
+          entry.selectedStores.forEach(store => {
+            const url = item.urls[store];
+            html += url.startsWith("http")
+              ? `<a href="${url}" target="_blank">${store}</a> `
+              : `${store}: ${url} `;
+          });
+          html += `</li>`;
+        });
+        html += `</ul></div>`;
+        container.innerHTML += html;
+      });
+    }
+
+    function copyURLsToClipboard() {
+      const history = JSON.parse(localStorage.getItem("urlGenHistory") || "[]");
+      if (history.length === 0 || !history[0].allUrls?.length) {
+        alert("No URLs to copy yet.");
+        return;
+      }
+      const latest = history[0];
+      const textToCopy = latest.allUrls.join('\n');
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        alert("URLs copied to clipboard!");
+      });
+    }
+
+    function exportCSV() {
+      const history = JSON.parse(localStorage.getItem("urlGenHistory") || "[]");
+      if (history.length === 0 || !history[0].allUrls?.length) {
+        alert("No URLs to export yet.");
+        return;
+      }
+      const latest = history[0];
+      const csvContent = latest.allUrls.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "generated_urls.csv";
+      link.click();
     }
 
     function clearHistory() {
@@ -244,27 +314,10 @@
       }
     }
 
-    function copyURLsToClipboard() {
-      const history = JSON.parse(localStorage.getItem("urlGenHistory") || "[]");
-      if (history.length === 0 || !history[0].allUrls.length) return alert("No URLs to copy yet.");
-      navigator.clipboard.writeText(history[0].allUrls.join('\n')).then(() => {
-        alert("URLs copied to clipboard!");
-      });
-    }
-
-    function exportCSV() {
-      const history = JSON.parse(localStorage.getItem("urlGenHistory") || "[]");
-      if (history.length === 0 || !history[0].allUrls.length) return alert("No URLs to export yet.");
-      const blob = new Blob([history[0].allUrls.join('\n')], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "generated_urls.csv";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
     displayHistory();
   </script>
+</body>
+</html>
+
 </body>
 </html>
